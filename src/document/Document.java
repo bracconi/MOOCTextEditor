@@ -1,12 +1,10 @@
 package document;
 
-import java.math.BigDecimal;
 /** 
  * A class that represents a text document
  * @author UC San Diego Intermediate Programming MOOC team
  */
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -43,62 +41,35 @@ public abstract class Document {
 		
 		return tokens;
 	}
-	protected List<String> getTokens(String pattern, String word)
-	{
-		ArrayList<String> tokens = new ArrayList<String>();
-	//	Pattern tokSplitter = Pattern.compile(pattern, Pattern.CASE_INSENSITIVE);
-		Pattern tokSplitter = Pattern.compile(pattern);
-		Matcher m = tokSplitter.matcher(word);
-		
-		while (m.find()) {
-			tokens.add(m.group());
-		}
-		
-		return tokens;
-	}
+	
 	// This is a helper function that returns the number of syllables
 	// in a word.  You should write this and use it in your 
 	// BasicDocument class.
-	// You will probably NOT need to add a countWords or a countSentences method
-	// here.  The reason we put countSyllables here because we'll use it again
-	// next week when we implement the EfficientDocument class.
-	protected int countSyllables(String word)
+	protected static int countSyllables(String word)
 	{
-		// TODO: Implement this method so that you can call it from the 
-	    // getNumSyllables method in BasicDocument (module 1) and 
-	    // EfficientDocument (module 2).
-/*		List<String> wordTokens = this.getTokens("(?i)a+|e+|i+|o+|u+|y+");
-			//	"[aeiouyAEIOUYe\b]");
-		//[aeiouy]+[^$e(,.:;!?)]
-		return wordTokens.size();*/
-		String regexp = "((a|i|o|u|y)(?!...)(a|i|o|u|y|e)|e?!(a|i|o|u|y|e|\\w)|\\w)";
-				//+ "[bcdfghjklmnpqrstvwxz]*[aeiouy]+[bcdfghjklmnpqrstvwxz]*";
-	    Pattern p = Pattern.compile(regexp);
-	    Matcher m = p.matcher(word.toLowerCase());
-
-	    int count = 0;
-
-	    while (m.find()) {
-	        count++;
-	    }
-	    return count;
-		
-//		int numSyllables = this.getTokens("(?i)a+|e+|i+|o+|u+|y+", word).size();
-//	    return word.endsWith("e") ? numSyllables-1 : numSyllables;
-
-		//	    String [] words = word.split("[^aeiouAEIOU]+");
-//	    List<String> syllablesInWord = new ArrayList<String>(Arrays.asList(words));
-//	    syllablesInWord.remove("");
-//	    int count = syllablesInWord.size();
-//	    if(count > 1 && syllablesInWord.lastIndexOf("e") == count-1){
-//	    	count -=1;
-//	    }
-//	    return count;
-
+	    //System.out.print("Counting syllables in " + word + "...");
+		int numSyllables = 0;
+		boolean newSyllable = true;
+		String vowels = "aeiouy";
+		char[] cArray = word.toCharArray();
+		for (int i = 0; i < cArray.length; i++)
+		{
+		    if (i == cArray.length-1 && Character.toLowerCase(cArray[i]) == 'e' 
+		    		&& newSyllable && numSyllables > 0) {
+                numSyllables--;
+            }
+		    if (newSyllable && vowels.indexOf(Character.toLowerCase(cArray[i])) >= 0) {
+				newSyllable = false;
+				numSyllables++;
+			}
+			else if (vowels.indexOf(Character.toLowerCase(cArray[i])) < 0) {
+				newSyllable = true;
+			}
+		}
+		//System.out.println( "found " + numSyllables);
+		return numSyllables;
 	}
 	
-
-
 	/** A method for testing
 	 * 
 	 * @param doc The Document object to test
@@ -159,17 +130,10 @@ public abstract class Document {
 	/** return the Flesch readability score of this document */
 	public double getFleschScore()
 	{
-	    // TODO: Implement this method
-		double numWords = (double)getNumWords();
-		double numSentesces = (double)getNumSentences();
-		double numSyllables = (double)getNumSyllables();
-		
-		double fs = 206.835-1.015*(numWords/numSentesces)-84.6*(numSyllables/numWords);
-		BigDecimal bd = new BigDecimal(Double.toString(fs));
-		    bd = bd.setScale(1,BigDecimal.ROUND_HALF_UP);
-		return bd.doubleValue();
-		
-		
+		double wordCount = (double)getNumWords();
+		return 206.835 - (1.015 * ((wordCount)/getNumSentences())) 
+				- (84.6 * (((double)getNumSyllables())/wordCount));
+	
 	}
 	
 	
