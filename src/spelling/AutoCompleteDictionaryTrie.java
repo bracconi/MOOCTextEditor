@@ -1,6 +1,7 @@
 package spelling;
 
 import java.util.List;
+import java.util.Queue;
 import java.util.Set;
 import java.util.Collection;
 import java.util.HashMap;
@@ -28,8 +29,28 @@ public class AutoCompleteDictionaryTrie implements  Dictionary, AutoComplete {
 	 * That is, you should convert the string to all lower case as you insert it. */
 	public boolean addWord(String word)
 	{
-	    //TODO: Implement this method.
-	    return false;
+		word = word.toLowerCase();
+		if(isWord(word)){
+			return false;
+		}
+		TrieNode current = root;
+		TrieNode next = new TrieNode();
+		
+		for(char c: word.toCharArray()){
+			next = current.getChild(c);
+			if(next == null){
+				next = current.insert(c);					
+			}
+			
+			current = next;
+		}				
+		if(!current.endsWord()){
+			current.setEndsWord(true);
+			size++;
+            return true;
+		}
+				
+		return false;		
 	}
 	
 	/** 
@@ -38,8 +59,8 @@ public class AutoCompleteDictionaryTrie implements  Dictionary, AutoComplete {
 	 */
 	public int size()
 	{
-	    //TODO: Implement this method
-	    return 0;
+	    
+	    return size;
 	}
 	
 	
@@ -47,8 +68,16 @@ public class AutoCompleteDictionaryTrie implements  Dictionary, AutoComplete {
 	@Override
 	public boolean isWord(String s) 
 	{
-	    // TODO: Implement this method
-		return false;
+	    String word = s.toLowerCase();
+		TrieNode node = this.root;
+		
+		for ( Character letter : word.toCharArray() ) {
+			node = node.getChild(letter);
+			if ( node == null ) {
+	                return false;
+	         }
+		}
+		return node.endsWord();
 	}
 
 	/** 
@@ -75,8 +104,39 @@ public class AutoCompleteDictionaryTrie implements  Dictionary, AutoComplete {
     	 //       If it is a word, add it to the completions list
     	 //       Add all of its child nodes to the back of the queue
     	 // Return the list of completions
+    	 prefix = prefix.toLowerCase();
+    	 TrieNode node = this.root;
     	 
-         return null;
+    	 Queue<TrieNode> q = new LinkedList<TrieNode>();
+    	 LinkedList<String> emptyList = new LinkedList<String>();
+    	 LinkedList<String> outList = new LinkedList<String>();
+    //	 if(prefix.isEmpty()) return emptyList;
+ 		 for ( Character letter : prefix.toCharArray() ) {
+ 			node = node.getChild(letter);
+ 			if ( node == null ) {
+ 	                return emptyList;
+ 	         }
+ 		 }
+ 		 q.add(node);
+ 		 while(!q.isEmpty() && outList.size() < numCompletions){
+ 			 TrieNode curr = q.remove();
+
+			if(curr != null){
+				if(curr.endsWord()){
+					 outList.add(curr.getText());
+				 }
+			}
+			Set<Character> childrencChar = curr.getValidNextCharacters();
+			for(Character c : childrencChar){
+				 TrieNode next=curr.getChild(c);
+				 if(next != null){
+					 q.add(next);
+				 }
+				 
+
+ 		 	}
+ 		 }
+         return outList;
      }
 
  	// For debugging
